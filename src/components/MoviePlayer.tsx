@@ -20,8 +20,9 @@ const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [hoverTime, setHoverTime] = useState(0);
-  const [showHoverTime, setShowHoverTime] = useState(false);
   const [isHoveringProgress, setIsHoveringProgress] = useState(false);
+  const [showSkipIndicator, setShowSkipIndicator] = useState(false);
+  const [skipDirection, setSkipDirection] = useState<'forward' | 'backward' | null>(null);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -190,6 +191,14 @@ const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
     if (!video) return;
 
     video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
+    
+    // Mostrar indicador de navegación
+    setSkipDirection(seconds > 0 ? 'forward' : 'backward');
+    setShowSkipIndicator(true);
+    setTimeout(() => {
+      setShowSkipIndicator(false);
+      setSkipDirection(null);
+    }, 1000);
   };
 
   const seekToPercentage = (percentage: number) => {
@@ -219,7 +228,6 @@ const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
 
   const handleProgressLeave = () => {
     setIsHoveringProgress(false);
-    setShowHoverTime(false);
   };
 
   const toggleFullscreen = () => {
@@ -298,6 +306,31 @@ const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                 <div className="text-white text-lg">Cargando video...</div>
+              </div>
+            )}
+
+            {/* Indicador de navegación rápida */}
+            {showSkipIndicator && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className={`bg-black/80 text-white px-6 py-3 rounded-lg text-2xl font-bold flex items-center space-x-2 ${
+                  skipDirection === 'forward' ? 'animate-pulse' : 'animate-pulse'
+                }`}>
+                  {skipDirection === 'forward' ? (
+                    <>
+                      <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M13 6v12l8.5-6L13 6zM4 18l8.5-6L4 6v12z"/>
+                      </svg>
+                      <span>+30s</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/>
+                      </svg>
+                      <span>-30s</span>
+                    </>
+                  )}
+                </div>
               </div>
             )}
 
@@ -467,9 +500,17 @@ const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
           ✖ Cerrar
         </button>
 
-        {/* Título del video */}
-        <div className="absolute top-3 left-3 text-white text-lg font-semibold bg-black/50 px-3 py-1 rounded">
-          {movie.title}
+        {/* Título del video estilo Netflix */}
+        <div className="absolute top-4 left-4 text-white text-xl font-bold bg-gradient-to-r from-black/80 to-transparent px-4 py-2 rounded-lg backdrop-blur-sm">
+          <div className="flex items-center space-x-3">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            <span className="text-shadow-lg">{movie.title}</span>
+          </div>
+          {movie.year && (
+            <div className="text-sm text-gray-300 font-normal mt-1">
+              {movie.year} • {movie.genre}
+            </div>
+          )}
         </div>
       </div>
 
@@ -481,6 +522,11 @@ const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
           border-radius: 50%;
           background: #ef4444;
           cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .slider::-webkit-slider-thumb:hover {
+          transform: scale(1.2);
+          box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
         }
         .slider::-moz-range-thumb {
           width: 16px;
@@ -489,6 +535,44 @@ const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
           background: #ef4444;
           cursor: pointer;
           border: none;
+          transition: all 0.2s ease;
+        }
+        .slider::-moz-range-thumb:hover {
+          transform: scale(1.2);
+          box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+        .progress-bar::-webkit-slider-track {
+          background: rgba(75, 85, 99, 0.5);
+          height: 4px;
+          border-radius: 2px;
+        }
+        .progress-bar::-webkit-slider-thumb {
+          width: 20px;
+          height: 20px;
+          background: #ef4444;
+          border: 2px solid white;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        .volume-slider::-webkit-slider-track {
+          background: rgba(75, 85, 99, 0.5);
+          height: 3px;
+          border-radius: 2px;
+        }
+        .volume-slider::-webkit-slider-thumb {
+          width: 14px;
+          height: 14px;
+          background: #ef4444;
+          border: 1px solid white;
+        }
+        .video-container:hover .slider::-webkit-slider-thumb {
+          opacity: 1;
+        }
+        .slider::-webkit-slider-thumb {
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+        .video-container:hover .slider::-webkit-slider-thumb {
+          opacity: 1;
         }
       `}</style>
     </div>
