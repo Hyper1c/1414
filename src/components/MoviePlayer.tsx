@@ -17,12 +17,15 @@ const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showControls, setShowControls] = useState(true);
   const [isVideoFile, setIsVideoFile] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [showPlayButton, setShowPlayButton] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [hoverTime, setHoverTime] = useState(0);
   const [isHoveringProgress, setIsHoveringProgress] = useState(false);
   const [showSkipIndicator, setShowSkipIndicator] = useState(false);
   const [skipDirection, setSkipDirection] = useState<'forward' | 'backward' | null>(null);
+  const [autoplayTimeout, setAutoplayTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -40,30 +43,117 @@ const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
     const handleLoadedMetadata = () => {
       setDuration(video.duration);
       setIsLoading(false);
+      
+      // Intentar autoplay inmediatamente
+      video.muted = true; // Asegurar que esté silenciado para autoplay
+      video.play().then(() => {
+        setIsPlaying(true);
+        setShowPlayButton(false);
+        console.log('Autoplay successful');
+      }).catch((error) => {
+        console.log('Autoplay blocked:', error);
+        setShowPlayButton(true);
+      });
+    };
+
+    const handleCanPlay = () => {
+      // También intentar autoplay cuando el video puede reproducirse
+      if (!hasUserInteracted && video.paused) {
+        video.muted = true;
+        video.play().then(() => {
+          setIsPlaying(true);
+          setShowPlayButton(false);
+          console.log('Autoplay successful on canplay');
+        }).catch((error) => {
+          console.log('Autoplay blocked on canplay:', error);
+          setShowPlayButton(true);
+        });
+      }
     };
 
     const handleTimeUpdate = () => {
       setCurrentTime(video.currentTime);
     };
 
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
-    const handleEnded = () => setIsPlaying(false);
+    const handlePlay = () => {
+      setIsPlaying(true);
+      setShowPlayButton(false);
+    };
+    
+    const handlePause = () => {
+      setIsPlaying(false);
+      setShowPlayButton(true);
+    };
+    
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setShowPlayButton(true);
+    };
+
+    const handleUserInteraction = () => {
+      setHasUserInteracted(true);
+      if (video.paused) {
+        video.play().then(() => {
+          setIsPlaying(true);
+          setShowPlayButton(false);
+        });
+      }
+    };
 
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('canplay', handleCanPlay);
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('play', handlePlay);
     video.addEventListener('pause', handlePause);
     video.addEventListener('ended', handleEnded);
+    video.addEventListener('click', handleUserInteraction);
 
     return () => {
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('canplay', handleCanPlay);
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('ended', handleEnded);
+      video.removeEventListener('click', handleUserInteraction);
     };
   }, [movie.streamUrl]);
+
+  // Intentar autoplay cuando el componente se monta
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !isVideoFile) return;
+
+    // Pequeño delay para asegurar que el video esté listo
+    const timer = setTimeout(() => {
+      if (!hasUserInteracted && video.paused) {
+        video.muted = true;
+        video.play().then(() => {
+          setIsPlaying(true);
+          setShowPlayButton(false);
+          console.log('Autoplay successful on mount');
+        }).catch((error) => {
+          console.log('Autoplay blocked on mount:', error);
+          setShowPlayButton(true);
+        });
+      }
+    }, 100);
+
+    // Timeout de respaldo para mostrar botón de play si no hay autoplay
+    const fallbackTimer = setTimeout(() => {
+      if (!hasUserInteracted && video.paused) {
+        setShowPlayButton(true);
+        console.log('Showing play button due to autoplay timeout');
+      }
+    }, 3000);
+
+    setAutoplayTimeout(fallbackTimer);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(fallbackTimer);
+    };
+  }, [isVideoFile, hasUserInteracted]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -152,10 +242,26 @@ const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
     const video = videoRef.current;
     if (!video) return;
 
+    setHasUserInteracted(true);
+    
+    // Limpiar timeout de autoplay
+    if (autoplayTimeout) {
+      clearTimeout(autoplayTimeout);
+      setAutoplayTimeout(null);
+    }
+
     if (video.paused) {
-      video.play();
+      video.play().then(() => {
+        setIsPlaying(true);
+        setShowPlayButton(false);
+      }).catch((error) => {
+        console.error('Error playing video:', error);
+        setShowPlayButton(true);
+      });
     } else {
       video.pause();
+      setIsPlaying(false);
+      setShowPlayButton(true);
     }
   };
 
@@ -163,34 +269,70 @@ const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
     const video = videoRef.current;
     if (!video) return;
 
+    setHasUserInteracted(true);
     video.muted = !video.muted;
     setIsMuted(video.muted);
+    
+    // Si se desmutea y el video está pausado, reproducir
+    if (!video.muted && video.paused) {
+      video.play().then(() => {
+        setIsPlaying(true);
+        setShowPlayButton(false);
+      });
+    }
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const video = videoRef.current;
     if (!video) return;
 
+    setHasUserInteracted(true);
     const newVolume = parseFloat(e.target.value);
     video.volume = newVolume;
     setVolume(newVolume);
     setIsMuted(newVolume === 0);
+    
+    // Si se ajusta el volumen y el video está pausado, reproducir
+    if (newVolume > 0 && video.paused) {
+      video.play().then(() => {
+        setIsPlaying(true);
+        setShowPlayButton(false);
+      });
+    }
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const video = videoRef.current;
     if (!video) return;
 
+    setHasUserInteracted(true);
     const newTime = parseFloat(e.target.value);
     video.currentTime = newTime;
     setCurrentTime(newTime);
+    
+    // Si se hace seek y el video está pausado, reproducir
+    if (video.paused) {
+      video.play().then(() => {
+        setIsPlaying(true);
+        setShowPlayButton(false);
+      });
+    }
   };
 
   const seek = (seconds: number) => {
     const video = videoRef.current;
     if (!video) return;
 
+    setHasUserInteracted(true);
     video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
+    
+    // Si se hace seek y el video está pausado, reproducir
+    if (video.paused) {
+      video.play().then(() => {
+        setIsPlaying(true);
+        setShowPlayButton(false);
+      });
+    }
     
     // Mostrar indicador de navegación
     setSkipDirection(seconds > 0 ? 'forward' : 'backward');
@@ -205,8 +347,17 @@ const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
     const video = videoRef.current;
     if (!video) return;
 
+    setHasUserInteracted(true);
     const targetTime = (video.duration * percentage) / 100;
     video.currentTime = targetTime;
+    
+    // Si se hace seek y el video está pausado, reproducir
+    if (video.paused) {
+      video.play().then(() => {
+        setIsPlaying(true);
+        setShowPlayButton(false);
+      });
+    }
   };
 
   const changePlaybackRate = (rate: number) => {
@@ -293,7 +444,7 @@ const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
               ref={videoRef}
               src={movie.streamUrl}
               className="w-full h-full"
-              autoPlay
+              muted={!hasUserInteracted}
               onClick={togglePlayPause}
               onError={(e) => {
                 console.error('Video error:', e);
@@ -304,8 +455,27 @@ const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
             />
             
             {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                <div className="text-white text-lg">Cargando video...</div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mb-4"></div>
+                <div className="text-white text-lg font-semibold">Cargando video...</div>
+                <div className="text-gray-300 text-sm mt-2">Preparando reproducción automática</div>
+              </div>
+            )}
+
+            {/* Botón de play grande cuando no hay autoplay */}
+            {showPlayButton && !isLoading && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40">
+                <button
+                  onClick={togglePlayPause}
+                  className="bg-red-600 hover:bg-red-700 text-white rounded-full p-8 transition-all duration-300 hover:scale-110 shadow-2xl mb-4"
+                >
+                  <svg className="w-20 h-20" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </button>
+                <div className="text-white text-lg font-semibold bg-black/60 px-4 py-2 rounded-lg">
+                  Haz clic para reproducir
+                </div>
               </div>
             )}
 
