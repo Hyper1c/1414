@@ -1,18 +1,15 @@
-import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
-import { LanguageProvider } from './contexts/LanguageContext';
-import { ProfileProvider } from './contexts/ProfileContext';
-import { AuthProvider } from './contexts/AuthContext';
-import MainApp from './components/MainApp';
+import React from "react";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProfileProvider } from "./contexts/ProfileContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
+import MainApp from "./components/MainApp";
 
 function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
         <ProfileProvider>
-          <Router>
-            <MainApp />
-          </Router>
+          <MainApp />
         </ProfileProvider>
       </AuthProvider>
     </LanguageProvider>
