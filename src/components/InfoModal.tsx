@@ -7,9 +7,10 @@ interface InfoModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPlay: (item: ContentItem) => void;
+  onPlayInPage?: (item: ContentItem) => void;
 }
 
-const InfoModal: React.FC<InfoModalProps> = ({ item, isOpen, onClose, onPlay }) => {
+const InfoModal: React.FC<InfoModalProps> = ({ item, isOpen, onClose, onPlay, onPlayInPage }) => {
   if (!isOpen || !item) return null;
 
   return (
@@ -50,13 +51,30 @@ const InfoModal: React.FC<InfoModalProps> = ({ item, isOpen, onClose, onPlay }) 
                 )}
               </div>
             </div>
-            <button
-              onClick={() => onPlay(item)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-            >
-              <Play size={20} />
-              Reproducir
-            </button>
+            <div className="flex gap-3">
+              {item.streamUrl && onPlayInPage && (
+                <button
+                  onClick={() => onPlayInPage(item)}
+                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                >
+                  <Play size={20} />
+                  Reproducir aquí
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  if (item.streamUrl) {
+                    window.open(item.streamUrl, '_blank');
+                  } else {
+                    onPlay(item);
+                  }
+                }}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+              >
+                <Play size={20} />
+                {item.streamUrl ? 'Abrir en nueva pestaña' : 'Reproducir'}
+              </button>
+            </div>
           </div>
 
           <div className="mb-4">
