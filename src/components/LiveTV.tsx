@@ -15,7 +15,6 @@ const LiveTV: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isMuted, setIsMuted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [systemInfo, setSystemInfo] = useState<string>('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const mpegtsRef = useRef<any>(null);
@@ -140,17 +139,6 @@ const LiveTV: React.FC = () => {
     cleanupPlayers();
   };
 
-  const updateSystemInfo = () => {
-    const info = {
-      online: navigator.onLine,
-      userAgent: navigator.userAgent,
-      platform: navigator.platform,
-      language: navigator.language,
-      cookieEnabled: navigator.cookieEnabled,
-      timestamp: new Date().toLocaleString()
-    };
-    setSystemInfo(JSON.stringify(info, null, 2));
-  };
 
   return (
     <div className="space-y-6">
@@ -242,9 +230,6 @@ const LiveTV: React.FC = () => {
           <RefreshCw size={20} />
           <span className="hidden sm:inline">{t('refresh')}</span>
         </button>
-        <button onClick={updateSystemInfo} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2">
-          💻 <span className="hidden sm:inline">{t('system')}</span>
-        </button>
       </div>
 
       {/* Channel Count */}
@@ -252,13 +237,6 @@ const LiveTV: React.FC = () => {
         {t('channel-count').replace('{count}', filteredChannels.length.toString()).replace('{total}', channels.length.toString())}
       </div>
 
-      {/* System Info */}
-      {systemInfo && (
-        <div className="bg-gray-800 rounded-lg p-4">
-          <h3 className="text-white font-semibold mb-2">{t('system-info')}</h3>
-          <pre className="text-green-400 text-xs overflow-auto bg-gray-900 p-2 rounded">{systemInfo}</pre>
-        </div>
-      )}
 
       {/* Channels Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
