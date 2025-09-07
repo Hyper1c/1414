@@ -40,7 +40,7 @@ export const mockMovies: ContentItem[] = [
     synopsis: '"Un grupo de amigos regresa a su pueblo natal después de muchos años. El viaje es una excusa para rememorar viejos tiempos, pero se convierte en una pesadilla cuando desentierran sus recuerdos más oscuros.',
     duration: 'Duración: 1h 10m',
     cast: ['Sam Worthington', 'Zoe Saldana', 'Sigourney Weaver'],
-    streamUrl: 'https://861515134.tapecontent.net/radosgw/XYY4xGlbzwIDD0B/yexqQBKh65dw5Y3nRJiK2TEYqyKzROk54_R4RHpigPZP4SxBgTQ05469ErVaN-bzYXm0VnDVqo2Xp4Qm-RIa3M2xj-WEYYy6vE3g106gvZPtp8ZcxumUgOpPCSXmpu0U_r7bI_4n6QOVCckJfUUBOaQFlmJar5rlnTSJONwpDcs-wSVxj1PGHc1A9gCs_ujUDFuASKwB2SShNaDB9nBRPMoPuh_QjFOL6THFLRVJFxW9P4C0EOeYe47vYhKUN_KeCI5HM1rL687jwtS5P1L6k2gQ1D8yD4dSxFC1tQ/La+Hacienda.mp4?stream=1'
+    streamUrl: 'https://861515134.tapecontent.net/radosgw/XYY4xGlbzwIDD0B/Tu5I54NmPHfIApACP-_zJmLfeGz9EccASRp1M7-HQkCgwbeD8hLywniNUBoQiE-5Pc9PmM-ICD768lXheJ1pNwel9kkEICPqPj9l77rT6pfzNdnK2thOahCkDRLcHDYEc0mfPKsG9tGnGiKWZv52mXu9BiOUmXwmD6riNip6LRycb-IU73KPMcet9tf825TmlW8JHPafhUOGn0u6qpdFNnHN_RDvk4mg6yG-nS_mJ43KttbJINyMOCDb_IQtlkvnbqNkdATm9dDDVUEa6bIAJPk2o1VVn0MU93m0wQ/La+Hacienda.mp4?stream=1'
   },
   {
     id: '2',
