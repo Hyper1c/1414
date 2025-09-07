@@ -66,7 +66,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
           localStorage.setItem('auth_user_id', user.uid);
           localStorage.setItem('auth_user_email', user.email || '');
-          console.log('🔐 AuthContext - Usuario autenticado, datos guardados');
         } catch (error) {
           console.error('Error guardando datos de usuario:', error);
         }
@@ -74,7 +73,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
           localStorage.removeItem('auth_user_id');
           localStorage.removeItem('auth_user_email');
-          console.log('🔐 AuthContext - Usuario desautenticado, datos limpiados');
         } catch (error) {
           console.error('Error limpiando datos de usuario:', error);
         }
