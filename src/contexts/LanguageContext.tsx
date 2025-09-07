@@ -50,6 +50,7 @@ const translations = {
     'fullscreen': 'Pantalla completa',
     'play': 'Reproducir',
     'pause': 'Pausar',
+    'info': 'Info',
     
     // Errores
     'error-loading': 'Error al cargar',
@@ -66,6 +67,13 @@ const translations = {
     'add-profile': 'Agregar Perfil',
     'edit-profile': 'Editar Perfil',
     'delete-profile': 'Eliminar Perfil',
+    'require-pin': 'Requerir PIN para este perfil',
+    'set-pin': 'Establecer PIN (solo números)',
+    'enter-pin': 'Ingresa el PIN',
+    'pin-placeholder': 'PIN (4-6 dígitos)',
+    'pin-hint': 'Usa de 4 a 6 números. No lo compartas.',
+    'pin-incorrect': 'PIN incorrecto',
+    'unlock': 'Desbloquear',
     'profile-name': 'Nombre del Perfil',
     'profile-avatar': 'Avatar del Perfil',
     'save-profile': 'Guardar Perfil',
@@ -100,6 +108,7 @@ const translations = {
     'save': 'Guardar',
     'edit': 'Editar',
     'loading': 'Cargando...',
+    'see-more': 'Ver más',
   },
   en: {
     // Navigation
@@ -139,6 +148,7 @@ const translations = {
     'fullscreen': 'Fullscreen',
     'play': 'Play',
     'pause': 'Pause',
+    'info': 'Info',
     
     // Errors
     'error-loading': 'Error loading',
@@ -155,6 +165,13 @@ const translations = {
     'add-profile': 'Add Profile',
     'edit-profile': 'Edit Profile',
     'delete-profile': 'Delete Profile',
+    'require-pin': 'Require PIN for this profile',
+    'set-pin': 'Set PIN (numbers only)',
+    'enter-pin': 'Enter PIN',
+    'pin-placeholder': 'PIN (4-6 digits)',
+    'pin-hint': 'Use 4 to 6 numbers. Do not share it.',
+    'pin-incorrect': 'Incorrect PIN',
+    'unlock': 'Unlock',
     'profile-name': 'Profile Name',
     'profile-avatar': 'Profile Avatar',
     'save-profile': 'Save Profile',
@@ -189,6 +206,7 @@ const translations = {
     'save': 'Save',
     'edit': 'Edit',
     'loading': 'Loading...',
+    'see-more': 'See more',
   }
 };
 
