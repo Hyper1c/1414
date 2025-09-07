@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Play, Info } from 'lucide-react';
 
 interface ContentItem {
@@ -18,6 +19,7 @@ interface ContentCardProps {
 }
 
 const ContentCard: React.FC<ContentCardProps> = ({ item, onPlay, onInfo }) => {
+  const { t } = useLanguage();
   return (
     <div className="group relative bg-gray-800 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:z-10">
       <div className="aspect-[2/3] relative">
@@ -36,18 +38,26 @@ const ContentCard: React.FC<ContentCardProps> = ({ item, onPlay, onInfo }) => {
             
             <div className="flex gap-2">
               <button
-                onClick={() => onPlay(item)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onPlay(item);
+                }}
                 className="flex items-center gap-1 bg-white text-black px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-gray-200 transition-colors"
               >
                 <Play size={12} />
-                Reproducir
+                {t('play')}
               </button>
               <button
-                onClick={() => onInfo(item)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onInfo(item);
+                }}
                 className="flex items-center gap-1 bg-gray-600/80 text-white px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-gray-500/80 transition-colors"
               >
                 <Info size={12} />
-                Info
+                {t('info') || 'Info'}
               </button>
             </div>
           </div>
