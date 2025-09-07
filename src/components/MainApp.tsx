@@ -27,34 +27,26 @@ const MainApp: React.FC = () => {
   const [currentMovie, setCurrentMovie] = useState<ContentItem | null>(null);
   const [isMoviePlayerOpen, setIsMoviePlayerOpen] = useState(false);
 
-  // Manejar la lógica de perfiles cuando el usuario se autentica
+  // Manejar la lógica de perfiles
   useEffect(() => {
     if (currentUser) {
       const savedUserId = localStorage.getItem('auth_user_id');
       const currentUserId = currentUser.uid;
-      
-      console.log('🎯 MainApp - Usuario autenticado:', currentUserId);
-      console.log('🎯 MainApp - Profiles disponibles:', profiles.length);
-      
-      // Si es un usuario diferente, limpiar perfil actual
+
       if (savedUserId && savedUserId !== currentUserId) {
         clearCurrentProfile();
       }
-      
-      // Si no hay perfiles, crear los por defecto
+
       if (profiles.length === 0) {
-        console.log('🎯 MainApp - No hay perfiles, creando por defecto');
         forceCreateDefaultProfiles();
       }
-      
-      // Mostrar selector de perfiles si no hay perfil actual
+
       if (!currentProfile) {
         setShowProfileSelector(true);
       }
     }
   }, [currentUser, currentProfile, clearCurrentProfile, profiles.length, forceCreateDefaultProfiles]);
 
-  // Ocultar selector cuando se selecciona un perfil
   useEffect(() => {
     if (currentProfile && showProfileSelector) {
       setShowProfileSelector(false);
@@ -65,26 +57,14 @@ const MainApp: React.FC = () => {
     return <Login />;
   }
 
-  console.log('🎯 MainApp - showProfileSelector:', showProfileSelector);
-  console.log('🎯 MainApp - currentProfile:', currentProfile);
-  console.log('🎯 MainApp - currentUser:', currentUser);
-
   if (showProfileSelector || !currentProfile) {
-    console.log('🎯 MainApp - Mostrando ProfileSelector');
     return <ProfileSelector onProfileSelected={() => setShowProfileSelector(false)} />;
   }
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query.toLowerCase());
-  };
-
+  const handleSearch = (query: string) => setSearchQuery(query.toLowerCase());
   const handlePlay = (item: ContentItem) => {
-    if (item.streamUrl) {
-      // Abrir modal Info y reproducir podría ir aquí; por ahora hacemos open en nueva pestaña
-      window.open(item.streamUrl, '_blank');
-    } else {
-      alert('Este contenido no tiene un enlace de reproducción configurado.');
-    }
+    if (item.streamUrl) window.open(item.streamUrl, '_blank');
+    else alert('Este contenido no tiene un enlace de reproducción configurado.');
   };
 
   const handleInfo = (item: ContentItem) => {
@@ -97,8 +77,6 @@ const MainApp: React.FC = () => {
       setCurrentMovie(item);
       setIsMoviePlayerOpen(true);
       setIsInfoModalOpen(false);
-    } else {
-      alert('Este contenido no tiene un enlace de reproducción configurado.');
     }
   };
 
@@ -107,14 +85,14 @@ const MainApp: React.FC = () => {
     setCurrentMovie(null);
   };
 
-  const filterItems = (items: ContentItem[]) => {
-    if (!searchQuery.trim()) return items;
-    return items.filter((it) =>
-      it.title.toLowerCase().includes(searchQuery) ||
-      it.genre.toLowerCase().includes(searchQuery) ||
-      String(it.year).includes(searchQuery)
-    );
-  };
+  const filterItems = (items: ContentItem[]) =>
+    !searchQuery.trim()
+      ? items
+      : items.filter((it) =>
+          it.title.toLowerCase().includes(searchQuery) ||
+          it.genre.toLowerCase().includes(searchQuery) ||
+          String(it.year).includes(searchQuery)
+        );
 
   const renderContent = () => {
     switch (activeSection) {
@@ -139,56 +117,18 @@ const MainApp: React.FC = () => {
                 ))}
               </div>
             </div>
-            <ContentSection
-              title={t('trending-series')}
-              items={filterItems(mockSeries)}
-              onPlay={handlePlay}
-              onInfo={handleInfo}
-            />
-            <ContentSection
-              title={t('for-kids')}
-              items={filterItems(mockKidsContent)}
-              onPlay={handlePlay}
-              onInfo={handleInfo}
-            />
+            <ContentSection title={t('trending-series')} items={filterItems(mockSeries)} onPlay={handlePlay} onInfo={handleInfo} />
+            <ContentSection title={t('for-kids')} items={filterItems(mockKidsContent)} onPlay={handlePlay} onInfo={handleInfo} />
           </div>
         );
       case 'movies':
-        return (
-          <ContentSection
-            title={t('movies')}
-            items={filterItems(mockMovies)}
-            onPlay={handlePlay}
-            onInfo={handleInfo}
-          />
-        );
+        return <ContentSection title={t('movies')} items={filterItems(mockMovies)} onPlay={handlePlay} onInfo={handleInfo} />;
       case 'series':
-        return (
-          <ContentSection
-            title={t('series')}
-            items={filterItems(mockSeries)}
-            onPlay={handlePlay}
-            onInfo={handleInfo}
-          />
-        );
+        return <ContentSection title={t('series')} items={filterItems(mockSeries)} onPlay={handlePlay} onInfo={handleInfo} />;
       case 'kids':
-        return (
-          <ContentSection
-            title={t('kids')}
-            items={filterItems(mockKidsContent)}
-            onPlay={handlePlay}
-            onInfo={handleInfo}
-          />
-        );
+        return <ContentSection title={t('kids')} items={filterItems(mockKidsContent)} onPlay={handlePlay} onInfo={handleInfo} />;
       case 'comedy':
-        return (
-          <ContentSection
-            title={t('comedy')}
-            items={mockComedyContent}
-            onPlay={handlePlay}
-            onInfo={handleInfo}
-          />
-        );
+        return <ContentSection title={t('comedy')} items={mockComedyContent} onPlay={handlePlay} onInfo={handleInfo} />;
       case 'live-tv':
         return <LiveTV />;
       default:
@@ -203,49 +143,18 @@ const MainApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <Header
-        onSearch={handleSearch}
-        onMenuToggle={() => setIsMenuOpen(!isMenuOpen)}
-        isMenuOpen={isMenuOpen}
-      />
-      
-      <Sidebar
-        isOpen={isMenuOpen}
-        activeSection={activeSection}
-        onSectionChange={(section) => {
-          setActiveSection(section);
-          setIsMenuOpen(false);
-        }}
-      />
+      <Header onSearch={handleSearch} onMenuToggle={() => setIsMenuOpen(!isMenuOpen)} isMenuOpen={isMenuOpen} />
+      <Sidebar isOpen={isMenuOpen} activeSection={activeSection} onSectionChange={(section) => { setActiveSection(section); setIsMenuOpen(false); }} />
 
       <main className={`transition-all duration-300 ${isMenuOpen ? 'ml-64' : 'ml-0'} pt-6`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {renderContent()}
-        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">{renderContent()}</div>
       </main>
 
-      <InfoModal
-        item={selectedItem}
-        isOpen={isInfoModalOpen}
-        onClose={() => setIsInfoModalOpen(false)}
-        onPlay={handlePlay}
-        onPlayInPage={handlePlayInPage}
-      />
+      <InfoModal item={selectedItem} isOpen={isInfoModalOpen} onClose={() => setIsInfoModalOpen(false)} onPlay={handlePlay} onPlayInPage={handlePlayInPage} />
 
-      {isMoviePlayerOpen && currentMovie && (
-        <MoviePlayer
-          movie={currentMovie}
-          onClose={handleCloseMoviePlayer}
-        />
-      )}
+      {isMoviePlayerOpen && currentMovie && <MoviePlayer movie={currentMovie} onClose={handleCloseMoviePlayer} />}
 
-      {/* Overlay for mobile menu */}
-      {isMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setIsMenuOpen(false)}
-        />
-      )}
+      {isMenuOpen && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setIsMenuOpen(false)} />}
     </div>
   );
 };
