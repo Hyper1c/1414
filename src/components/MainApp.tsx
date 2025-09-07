@@ -10,7 +10,7 @@ import ContentCard from './ContentCard';
 import LiveTV from './LiveTV';
 import InfoModal from './InfoModal';
 import ProfileSelector from './ProfileSelector';
-import { MoviePlayer } from './MoviePlayer';
+import MoviePlayer from './MoviePlayer';
 import { mockMovies, mockSeries, mockKidsContent, mockComedyContent } from '../data/mockContent';
 import type { ContentItem } from '../data/mockContent';
 
