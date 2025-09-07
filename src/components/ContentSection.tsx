@@ -22,9 +22,9 @@ const ContentSection: React.FC<ContentSectionProps> = ({ title, items, onPlay, o
   return (
     <div className="mb-8">
       <h2 className="text-2xl font-bold text-white mb-4 px-4">{title}</h2>
-      <div className="flex gap-4 overflow-x-auto pb-4 px-4 scrollbar-hide">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 px-4">
         {items.map((item) => (
-          <div key={item.id} className="flex-shrink-0 w-48">
+          <div key={item.id} className="w-full">
             <ContentCard item={item} onPlay={onPlay} onInfo={onInfo} />
           </div>
         ))}
