@@ -31,11 +31,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
 
   const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    try {
+      localStorage.setItem('auth_user_id', cred.user.uid);
+      localStorage.setItem('auth_user_email', cred.user.email || '');
+      console.log('🔐 AuthContext - Usuario logueado:', cred.user.uid);
+    } catch (error) {
+      console.error('Error guardando datos de usuario:', error);
+    }
   };
 
   const logout = async () => {
     await signOut(auth);
+    try {
+      // Limpiar datos del usuario actual
+      const userId = localStorage.getItem('auth_user_id');
+      if (userId) {
+        localStorage.removeItem(`currentProfile:${userId}`);
+      }
+      localStorage.removeItem('auth_user_id');
+      localStorage.removeItem('auth_user_email');
+    } catch {}
   };
 
   const resetPassword = async (email: string) => {
@@ -44,8 +60,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log('🔐 AuthContext - Estado de autenticación cambiado:', user?.uid || 'null');
       setCurrentUser(user);
       setLoading(false);
+      if (user) {
+        try {
+          localStorage.setItem('auth_user_id', user.uid);
+          localStorage.setItem('auth_user_email', user.email || '');
+          console.log('🔐 AuthContext - Usuario autenticado, datos guardados');
+        } catch (error) {
+          console.error('Error guardando datos de usuario:', error);
+        }
+      } else {
+        try {
+          // Solo limpiar datos del usuario si realmente se cerró sesión
+          localStorage.removeItem('auth_user_id');
+          localStorage.removeItem('auth_user_email');
+          console.log('🔐 AuthContext - Usuario desautenticado, datos limpiados');
+        } catch (error) {
+          console.error('Error limpiando datos de usuario:', error);
+        }
+      }
     });
 
     return unsubscribe;
