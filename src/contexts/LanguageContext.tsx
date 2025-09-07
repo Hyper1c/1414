@@ -30,9 +30,7 @@ const translations = {
     'no-channels-desc': 'Intenta con otros términos de búsqueda o cambia la categoría',
     'search-channels': 'Buscar canales...',
     'refresh': 'Refrescar',
-    'system': 'Sistema',
     'diagnostics': 'Información de diagnóstico',
-    'system-info': 'Información del Sistema',
     
     // Categorías
     'all-channels': 'Todos los Canales',
@@ -128,9 +126,7 @@ const translations = {
     'no-channels-desc': 'Try different search terms or change the category',
     'search-channels': 'Search channels...',
     'refresh': 'Refresh',
-    'system': 'System',
     'diagnostics': 'Diagnostic Information',
-    'system-info': 'System Information',
     
     // Categories
     'all-channels': 'All Channels',
