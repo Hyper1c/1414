@@ -1,10 +1,4 @@
-export interface Channel {
-    name: string;
-    url: string;
-    category: string;
-    icon: string;
-    description?: string;
-  }
+import type { Channel } from '../types/channel';
   
   export const channels: Channel[] = [
     // Películas

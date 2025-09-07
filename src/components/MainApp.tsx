@@ -9,7 +9,8 @@ import ContentSection from './ContentSection';
 import LiveTV from './LiveTV';
 import InfoModal from './InfoModal';
 import ProfileSelector from './ProfileSelector';
-import { mockMovies, mockSeries, mockKidsContent, mockComedyContent, ContentItem } from '../data/mockContent';
+import { mockMovies, mockSeries, mockKidsContent, mockComedyContent } from '../data/mockContent';
+import type { ContentItem } from '../data/mockContent';
 
 const MainApp: React.FC = () => {
   const { currentUser } = useAuth();

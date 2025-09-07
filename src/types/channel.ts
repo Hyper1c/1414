@@ -1,12 +1,9 @@
 export interface Channel {
-  id: string;
   name: string;
   url: string;
-  logo: string;
   category: string;
-  description?: string;
   icon: string;
-  isFavorite?: boolean;
+  description?: string;
 }
 
 export interface ChannelCategory {

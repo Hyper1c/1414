@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Play, Volume2, VolumeX, Maximize, RefreshCw, Search, Filter } from 'lucide-react';
-import { channels, categories, Channel } from '../data/channels';
+import { channels, categories } from '../data/channels';
+import type { Channel } from '../types/channel';
 import Icon from './Icon';
 import { useLanguage } from '../contexts/LanguageContext';
 import Hls from 'hls.js';
