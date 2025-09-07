@@ -44,7 +44,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async () => {
     await signOut(auth);
     try {
-      // Limpiar datos del usuario actual
       const userId = localStorage.getItem('auth_user_id');
       if (userId) {
         localStorage.removeItem(`currentProfile:${userId}`);
@@ -73,7 +72,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       } else {
         try {
-          // Solo limpiar datos del usuario si realmente se cerró sesión
           localStorage.removeItem('auth_user_id');
           localStorage.removeItem('auth_user_email');
           console.log('🔐 AuthContext - Usuario desautenticado, datos limpiados');
