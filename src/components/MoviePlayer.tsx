@@ -8,7 +8,7 @@ interface MoviePlayerProps {
   onClose: () => void;
 }
 
-export const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
+const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -269,3 +269,5 @@ export const MoviePlayer: React.FC<MoviePlayerProps> = ({ movie, onClose }) => {
     </div>
   );
 };
+
+export default MoviePlayer;
