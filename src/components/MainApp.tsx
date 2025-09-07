@@ -27,7 +27,7 @@ const MainApp: React.FC = () => {
   const [currentMovie, setCurrentMovie] = useState<ContentItem | null>(null);
   const [isMoviePlayerOpen, setIsMoviePlayerOpen] = useState(false);
 
-  // Manejar la lógica de perfiles
+  // Manejar perfiles al iniciar sesión
   useEffect(() => {
     if (currentUser) {
       const savedUserId = localStorage.getItem('auth_user_id');
@@ -61,10 +61,20 @@ const MainApp: React.FC = () => {
     return <ProfileSelector onProfileSelected={() => setShowProfileSelector(false)} />;
   }
 
-  const handleSearch = (query: string) => setSearchQuery(query.toLowerCase());
+  const handleSearch = (query: string) => {
+    setSearchQuery(query.toLowerCase());
+  };
+
+  // 👉 Ahora abre el MoviePlayer en la misma página
   const handlePlay = (item: ContentItem) => {
-    if (item.streamUrl) window.open(item.streamUrl, '_blank');
-    else alert('Este contenido no tiene un enlace de reproducción configurado.');
+    console.log('handlePlay called with:', item.title, item.streamUrl);
+    if (item.streamUrl) {
+      setCurrentMovie(item);
+      setIsMoviePlayerOpen(true);
+      console.log('MoviePlayer should open now');
+    } else {
+      alert('Este contenido no tiene un enlace de reproducción configurado.');
+    }
   };
 
   const handleInfo = (item: ContentItem) => {
@@ -77,6 +87,8 @@ const MainApp: React.FC = () => {
       setCurrentMovie(item);
       setIsMoviePlayerOpen(true);
       setIsInfoModalOpen(false);
+    } else {
+      alert('Este contenido no tiene un enlace de reproducción configurado.');
     }
   };
 
@@ -85,14 +97,14 @@ const MainApp: React.FC = () => {
     setCurrentMovie(null);
   };
 
-  const filterItems = (items: ContentItem[]) =>
-    !searchQuery.trim()
-      ? items
-      : items.filter((it) =>
-          it.title.toLowerCase().includes(searchQuery) ||
-          it.genre.toLowerCase().includes(searchQuery) ||
-          String(it.year).includes(searchQuery)
-        );
+  const filterItems = (items: ContentItem[]) => {
+    if (!searchQuery.trim()) return items;
+    return items.filter((it) =>
+      it.title.toLowerCase().includes(searchQuery) ||
+      it.genre.toLowerCase().includes(searchQuery) ||
+      String(it.year).includes(searchQuery)
+    );
+  };
 
   const renderContent = () => {
     switch (activeSection) {
@@ -117,18 +129,56 @@ const MainApp: React.FC = () => {
                 ))}
               </div>
             </div>
-            <ContentSection title={t('trending-series')} items={filterItems(mockSeries)} onPlay={handlePlay} onInfo={handleInfo} />
-            <ContentSection title={t('for-kids')} items={filterItems(mockKidsContent)} onPlay={handlePlay} onInfo={handleInfo} />
+            <ContentSection
+              title={t('trending-series')}
+              items={filterItems(mockSeries)}
+              onPlay={handlePlay}
+              onInfo={handleInfo}
+            />
+            <ContentSection
+              title={t('for-kids')}
+              items={filterItems(mockKidsContent)}
+              onPlay={handlePlay}
+              onInfo={handleInfo}
+            />
           </div>
         );
       case 'movies':
-        return <ContentSection title={t('movies')} items={filterItems(mockMovies)} onPlay={handlePlay} onInfo={handleInfo} />;
+        return (
+          <ContentSection
+            title={t('movies')}
+            items={filterItems(mockMovies)}
+            onPlay={handlePlay}
+            onInfo={handleInfo}
+          />
+        );
       case 'series':
-        return <ContentSection title={t('series')} items={filterItems(mockSeries)} onPlay={handlePlay} onInfo={handleInfo} />;
+        return (
+          <ContentSection
+            title={t('series')}
+            items={filterItems(mockSeries)}
+            onPlay={handlePlay}
+            onInfo={handleInfo}
+          />
+        );
       case 'kids':
-        return <ContentSection title={t('kids')} items={filterItems(mockKidsContent)} onPlay={handlePlay} onInfo={handleInfo} />;
+        return (
+          <ContentSection
+            title={t('kids')}
+            items={filterItems(mockKidsContent)}
+            onPlay={handlePlay}
+            onInfo={handleInfo}
+          />
+        );
       case 'comedy':
-        return <ContentSection title={t('comedy')} items={mockComedyContent} onPlay={handlePlay} onInfo={handleInfo} />;
+        return (
+          <ContentSection
+            title={t('comedy')}
+            items={mockComedyContent}
+            onPlay={handlePlay}
+            onInfo={handleInfo}
+          />
+        );
       case 'live-tv':
         return <LiveTV />;
       default:
@@ -143,18 +193,48 @@ const MainApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <Header onSearch={handleSearch} onMenuToggle={() => setIsMenuOpen(!isMenuOpen)} isMenuOpen={isMenuOpen} />
-      <Sidebar isOpen={isMenuOpen} activeSection={activeSection} onSectionChange={(section) => { setActiveSection(section); setIsMenuOpen(false); }} />
+      <Header
+        onSearch={handleSearch}
+        onMenuToggle={() => setIsMenuOpen(!isMenuOpen)}
+        isMenuOpen={isMenuOpen}
+      />
+
+      <Sidebar
+        isOpen={isMenuOpen}
+        activeSection={activeSection}
+        onSectionChange={(section) => {
+          setActiveSection(section);
+          setIsMenuOpen(false);
+        }}
+      />
 
       <main className={`transition-all duration-300 ${isMenuOpen ? 'ml-64' : 'ml-0'} pt-6`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">{renderContent()}</div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {renderContent()}
+        </div>
       </main>
 
-      <InfoModal item={selectedItem} isOpen={isInfoModalOpen} onClose={() => setIsInfoModalOpen(false)} onPlay={handlePlay} onPlayInPage={handlePlayInPage} />
+      <InfoModal
+        item={selectedItem}
+        isOpen={isInfoModalOpen}
+        onClose={() => setIsInfoModalOpen(false)}
+        onPlay={handlePlay}
+        onPlayInPage={handlePlayInPage}
+      />
 
-      {isMoviePlayerOpen && currentMovie && <MoviePlayer movie={currentMovie} onClose={handleCloseMoviePlayer} />}
+      {isMoviePlayerOpen && currentMovie && (
+        <MoviePlayer
+          movie={currentMovie}
+          onClose={handleCloseMoviePlayer}
+        />
+      )}
 
-      {isMenuOpen && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setIsMenuOpen(false)} />}
+      {isMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
     </div>
   );
 };
