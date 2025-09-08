@@ -92,6 +92,7 @@ const ProfileFormModal: React.FC<{
     setName("");
     setAvatar("👤");
     setPin("");
+    onClose();
   };
 
   return (

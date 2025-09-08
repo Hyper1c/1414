@@ -1,5 +1,17 @@
 // /contexts/ProfileContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { 
+  collection, 
+  doc, 
+  onSnapshot, 
+  setDoc, 
+  deleteDoc, 
+  query, 
+  where,
+  getDocs 
+} from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { useAuth } from './AuthContext';
 
 export interface Profile {
   id: string;
@@ -61,145 +73,179 @@ const defaultProfiles: Omit<Profile, 'id'>[] = [
   }
 ];
 
-const getUserKeys = () => {
-  // usa auth_user_id si existe (tu MainApp lo guarda ahí),
-  // si no, usamos 'guest' para mantener compatibilidad.
-  const uid = localStorage.getItem('auth_user_id') ?? 'guest';
-  return {
-    profilesKey: `profiles:${uid}`,
-    currentKey: `currentProfile:${uid}`,
-    // claves globales para compatibilidad con código antiguo:
-    globalProfilesKey: 'profiles',
-    globalCurrentKey: 'currentProfile'
-  };
-};
-
-const readProfilesFromStorage = (): Profile[] | null => {
-  try {
-    const { profilesKey, globalProfilesKey } = getUserKeys();
-    let saved = localStorage.getItem(profilesKey);
-    if (!saved) saved = localStorage.getItem(globalProfilesKey);
-    return saved ? JSON.parse(saved) : null;
-  } catch {
-    return null;
-  }
-};
-
-const readCurrentFromStorage = (): Profile | null => {
-  try {
-    const { currentKey, globalCurrentKey } = getUserKeys();
-    let saved = localStorage.getItem(currentKey);
-    if (!saved) saved = localStorage.getItem(globalCurrentKey);
-    return saved ? JSON.parse(saved) : null;
-  } catch {
-    return null;
-  }
-};
-
 export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [profiles, setProfiles] = useState<Profile[]>(() => {
-    const loaded = readProfilesFromStorage() ?? [];
-    console.log('🔍 ProfileContext - Profiles cargados al inicializar:', loaded);
-    return loaded;
-  });
-  const [currentProfile, setCurrentProfile] = useState<Profile | null>(() => {
-    const loaded = readCurrentFromStorage();
-    console.log('🔍 ProfileContext - CurrentProfile cargado al inicializar:', loaded);
-    return loaded;
-  });
+  const { currentUser } = useAuth();
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [currentProfile, setCurrentProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Guardar profiles en storage (clave por usuario y clave global)
+  // Sincronización en tiempo real con Firestore
   useEffect(() => {
-    try {
-      const { profilesKey, globalProfilesKey } = getUserKeys();
-      const payload = JSON.stringify(profiles);
-      localStorage.setItem(profilesKey, payload);
-      localStorage.setItem(globalProfilesKey, payload);
-    } catch (e) {
-      console.error('Error guardando profiles en localStorage', e);
-    }
-  }, [profiles]);
-
-  // Guardar currentProfile en storage (clave por usuario y global)
-  useEffect(() => {
-    try {
-      const { currentKey, globalCurrentKey } = getUserKeys();
-      if (currentProfile) {
-        const payload = JSON.stringify(currentProfile);
-        localStorage.setItem(currentKey, payload);
-        localStorage.setItem(globalCurrentKey, payload);
-      } else {
-        // si es null, removemos la clave por usuario (y la global si existe)
-        localStorage.removeItem(currentKey);
-        // opcional: no eliminamos globalCurrentKey para compatibilidad
-      }
-    } catch (e) {
-      console.error('Error guardando currentProfile en localStorage', e);
-    }
-  }, [currentProfile]);
-
-  // CRUD
-  const addProfile = (profile: Omit<Profile, 'id'>) => {
-    const newProfile: Profile = {
-      ...profile,
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-    };
-    setProfiles(prev => [...prev, newProfile]);
-  };
-
-  const updateProfile = (id: string, updates: Partial<Profile>) => {
-    setProfiles(prev => prev.map(p => (p.id === id ? { ...p, ...updates } : p)));
-    if (currentProfile?.id === id) {
-      setCurrentProfile(prev => prev ? { ...prev, ...updates } : null);
-    }
-  };
-
-  const deleteProfile = (id: string) => {
-    setProfiles(prev => prev.filter(p => p.id !== id));
-    if (currentProfile?.id === id) {
+    if (!currentUser) {
+      setProfiles([]);
       setCurrentProfile(null);
+      setIsLoading(false);
+      return;
+    }
+
+    console.log('🔄 ProfileContext - Configurando listener para usuario:', currentUser.uid);
+
+    // Listener en tiempo real para los perfiles del usuario
+    const profilesQuery = query(
+      collection(db, 'profiles'),
+      where('userId', '==', currentUser.uid)
+    );
+
+    const unsubscribe = onSnapshot(profilesQuery, (snapshot) => {
+      const profilesData: Profile[] = [];
+      
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        profilesData.push({
+          id: doc.id,
+          name: data.name,
+          avatar: data.avatar,
+          isAdult: data.isAdult,
+          isActive: data.isActive,
+          pin: data.pin,
+          requiresPin: data.requiresPin,
+          preferences: data.preferences
+        });
+      });
+
+      console.log('🔄 ProfileContext - Perfiles sincronizados desde Firestore:', profilesData);
+      setProfiles(profilesData);
+      setIsLoading(false);
+
+      // Si no hay perfiles, crear los por defecto
+      if (profilesData.length === 0) {
+        console.log('🆕 ProfileContext - No hay perfiles, creando defaults');
+        createDefaultProfilesInFirestore();
+      }
+    }, (error) => {
+      console.error('Error en listener de perfiles:', error);
+      setIsLoading(false);
+    });
+
+    return () => {
+      console.log('🔄 ProfileContext - Desconectando listener');
+      unsubscribe();
+    };
+  }, [currentUser]);
+
+  // Crear perfiles por defecto en Firestore
+  const createDefaultProfilesInFirestore = async () => {
+    if (!currentUser) return;
+
+    try {
+      for (const profile of defaultProfiles) {
+        const profileId = `${currentUser.uid}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+        await setDoc(doc(db, 'profiles', profileId), {
+          ...profile,
+          userId: currentUser.uid,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+      console.log('✅ ProfileContext - Perfiles por defecto creados en Firestore');
+    } catch (error) {
+      console.error('Error creando perfiles por defecto:', error);
+    }
+  };
+
+  // CRUD con sincronización en Firestore
+  const addProfile = async (profile: Omit<Profile, 'id'>) => {
+    if (!currentUser) return;
+
+    try {
+      const profileId = `${currentUser.uid}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      await setDoc(doc(db, 'profiles', profileId), {
+        ...profile,
+        userId: currentUser.uid,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      console.log('✅ ProfileContext - Perfil agregado a Firestore');
+    } catch (error) {
+      console.error('Error agregando perfil:', error);
+    }
+  };
+
+  const updateProfile = async (id: string, updates: Partial<Profile>) => {
+    if (!currentUser) return;
+
+    try {
+      const profileRef = doc(db, 'profiles', id);
+      await setDoc(profileRef, {
+        ...updates,
+        updatedAt: new Date()
+      }, { merge: true });
+      
+      // Actualizar perfil actual si es el mismo
+      if (currentProfile?.id === id) {
+        setCurrentProfile(prev => prev ? { ...prev, ...updates } : null);
+      }
+      
+      console.log('✅ ProfileContext - Perfil actualizado en Firestore');
+    } catch (error) {
+      console.error('Error actualizando perfil:', error);
+    }
+  };
+
+  const deleteProfile = async (id: string) => {
+    if (!currentUser) return;
+
+    try {
+      await deleteDoc(doc(db, 'profiles', id));
+      
+      // Limpiar perfil actual si es el mismo
+      if (currentProfile?.id === id) {
+        setCurrentProfile(null);
+        localStorage.removeItem('selected_profile_id');
+      }
+      
+      console.log('✅ ProfileContext - Perfil eliminado de Firestore');
+    } catch (error) {
+      console.error('Error eliminando perfil:', error);
     }
   };
 
   const selectProfile = (profile: Profile | null) => {
     if (!profile) {
       setCurrentProfile(null);
+      localStorage.removeItem('selected_profile_id');
       return;
     }
-    // clonamos para evitar que editar current mutile el objeto en la lista
+    
+    // Clonar para evitar mutaciones
     setCurrentProfile({ ...profile, preferences: { ...profile.preferences } });
+    localStorage.setItem('selected_profile_id', profile.id);
   };
 
-  const createDefaultProfiles = () => {
+  const createDefaultProfiles = async () => {
     console.log('🛠️ ProfileContext - createDefaultProfiles ejecutándose');
-    const newProfiles = defaultProfiles.map((p, i) => ({ ...p, id: `default-${i}-${Date.now()}` }));
-    console.log('🎯 ProfileContext - Creando nuevos perfiles por defecto:', newProfiles);
-    setProfiles(newProfiles);
-    // No establecer currentProfile automáticamente, dejar que el usuario elija
+    await createDefaultProfilesInFirestore();
   };
 
   const clearCurrentProfile = () => setCurrentProfile(null);
 
-  // Inicialización: crear perfiles por defecto si no existen
+  // Restaurar perfil seleccionado desde localStorage
   useEffect(() => {
-    console.log('🚀 ProfileContext - useEffect de inicialización ejecutándose');
-    const saved = readProfilesFromStorage();
-    console.log('🔍 ProfileContext - Saved en useEffect:', saved);
-    console.log('📊 ProfileContext - Profiles.length en estado:', profiles.length);
-    console.log('🔑 ProfileContext - auth_user_id:', localStorage.getItem('auth_user_id'));
-    
-    // Si no hay perfiles guardados, crear los por defecto
-    if (!saved || saved.length === 0) {
-      console.log('🆕 ProfileContext - No hay profiles guardados, creando defaults');
-      createDefaultProfiles();
+    if (profiles.length > 0 && !currentProfile) {
+      const savedProfileId = localStorage.getItem('selected_profile_id');
+      if (savedProfileId) {
+        const savedProfile = profiles.find(p => p.id === savedProfileId);
+        if (savedProfile) {
+          console.log('🔄 ProfileContext - Restaurando perfil guardado:', savedProfile.name);
+          setCurrentProfile(savedProfile);
+        }
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // solo al montar
+  }, [profiles, currentProfile]);
 
-  // Función para forzar la creación de perfiles por defecto
-  const forceCreateDefaultProfiles = () => {
+  const forceCreateDefaultProfiles = async () => {
     console.log('🆕 ProfileContext - Forzando creación de perfiles por defecto');
-    createDefaultProfiles();
+    await createDefaultProfiles();
   };
 
   return (
