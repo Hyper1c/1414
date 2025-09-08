@@ -9,7 +9,7 @@ import { Plus, Trash2, Edit } from "lucide-react";
 const PinModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (pin: string) => void;
+  onConfirm: (pin: string) => void;a
   profileName?: string;
 }> = ({ isOpen, onClose, onConfirm, profileName }) => {
   const [pinInput, setPinInput] = useState("");
