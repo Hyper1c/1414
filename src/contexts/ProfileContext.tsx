@@ -42,7 +42,7 @@ const defaultProfiles: Omit<Profile, 'id'>[] = [
     preferences: { language: 'es', autoplay: true, subtitles: false, quality: 'high' }
   },
   {
-    name: 'Niños',
+    name: 'Usuario 2',
     avatar: '👶',
     isAdult: false,
     isActive: false,
@@ -51,7 +51,7 @@ const defaultProfiles: Omit<Profile, 'id'>[] = [
     preferences: { language: 'es', autoplay: true, subtitles: true, quality: 'medium' }
   },
   {
-    name: 'Familiar',
+    name: 'Usuario 3',
     avatar: '👨‍👩‍👧‍👦',
     isAdult: true,
     isActive: false,
