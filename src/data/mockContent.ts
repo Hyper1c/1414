@@ -40,7 +40,7 @@ export const mockMovies: ContentItem[] = [
     synopsis: '"Un grupo de amigos regresa a su pueblo natal después de muchos años. El viaje es una excusa para rememorar viejos tiempos, pero se convierte en una pesadilla cuando desentierran sus recuerdos más oscuros.',
     duration: 'Duración: 1h 10m',
     cast: ['Sam Worthington', 'Zoe Saldana', 'Sigourney Weaver'],
-    streamUrl: 'https://861515134.tapecontent.net/radosgw/XYY4xGlbzwIDD0B/Tu5I54NmPHfIApACP-_zJmLfeGz9EccASRp1M7-HQkCgwbeD8hLywniNUBoQiE-5Pc9PmM-ICD768lXheJ1pNwel9kkEICPqPj9l77rT6pfzNdnK2thOahCkDRLcHDYEc0mfPKsG9tGnGiKWZv52mXu9BiOUmXwmD6riNip6LRycb-IU73KPMcet9tf825TmlW8JHPafhUOGn0u6qpdFNnHN_RDvk4mg6yG-nS_mJ43KttbJINyMOCDb_IQtlkvnbqNkdATm9dDDVUEa6bIAJPk2o1VVn0MU93m0wQ/La+Hacienda.mp4?stream=1'
+    streamUrl: 'https://ia600906.us.archive.org/32/items/la-hacienda/La%20Hacienda.mp4?cnt=0  '
   },
   {
     id: '2',
@@ -172,7 +172,7 @@ export const mockMovies: ContentItem[] = [
     synopsis: 'Impulsado por una droga alucinógena y un deseo de venganza, James Hook asesina a John Darling y pierde su mano a manos de Peter Pan. Dieciocho años después, Wendy, ahora casada con Peter, tiene una hija, Lily. Lily descubre que Hook es su padre biológico, lo que la lleva a un retiro de cumpleaños remoto. Hook escapa de la prisión y se embarca en una matanza, teniendo como blanco a Lily y sus amigos en la mansión.',
     duration: 'Duración: 1h 18m',
     cast: ['Tom Holland', 'Zendaya', 'Benedict Cumberbatch'],
-    streamUrl: 'https://akm-cdn-play-web.onfilom.com/f0e536bf65fe71f0800b87c7361c0102/b1a83be851004a0ea2aaa99da1255e19-cac1c691bdae8e3f370454222ebe1f9c-sd.m3u8?hdnts=exp=1755710852_acl=/f0e536bf65fe71f0800b87c7361c0102/*_hmac=b17b41686a341c692fb39b25395190fd48e61e79f18e34ef3f2dc9e413a585eb'
+    streamUrl: 'https://youtu.be/EbF1TgtcjNU'
   },
   {
     id: '12',
