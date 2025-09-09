@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useProfiles } from "../contexts/ProfileContext";
 import { Plus, Trash2, Edit } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 // =======================
 // Modal de PIN
@@ -9,7 +10,7 @@ import { Plus, Trash2, Edit } from "lucide-react";
 const PinModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (pin: string) => void;a
+  onConfirm: (pin: string) => void;
   profileName?: string;
 }> = ({ isOpen, onClose, onConfirm, profileName }) => {
   const [pinInput, setPinInput] = useState("");
@@ -48,6 +49,60 @@ const PinModal: React.FC<{
             className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
           >
             Entrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// =======================
+// Modal de confirmación con contraseña de la cuenta
+// =======================
+const PasswordConfirmModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (password: string) => void;
+}> = ({ isOpen, onClose, onConfirm }) => {
+  const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async () => {
+    if (!password) return;
+    setSubmitting(true);
+    await onConfirm(password);
+    setSubmitting(false);
+    setPassword("");
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+      <div className="bg-gray-900 rounded-2xl shadow-xl p-8 max-w-sm w-full border border-blue-600/30">
+        <h2 className="text-2xl font-bold text-white mb-4">Confirmar con tu contraseña</h2>
+        <p className="text-sm text-gray-400 mb-4">Por seguridad, ingresa la contraseña de tu cuenta para editar el perfil.</p>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white mb-6 focus:outline-none focus:border-blue-500"
+          placeholder="Contraseña de la cuenta"
+        />
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={onClose}
+            disabled={submitting}
+            className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white transition-colors disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={!password || submitting}
+            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+          >
+            {submitting ? 'Verificando...' : 'Confirmar'}
           </button>
         </div>
       </div>
@@ -206,6 +261,7 @@ const ProfileSelector: React.FC<{ onProfileSelected?: () => void }> = ({
 }) => {
   const { profiles, selectProfile, addProfile, updateProfile, deleteProfile } =
     useProfiles();
+  const { reauthenticate } = useAuth();
 
   const [pinProfile, setPinProfile] = useState<any | null>(null);
   const [pinError, setPinError] = useState("");
@@ -214,6 +270,10 @@ const ProfileSelector: React.FC<{ onProfileSelected?: () => void }> = ({
   const [editProfile, setEditProfile] = useState<any | null>(null);
 
   const [deleteProfileId, setDeleteProfileId] = useState<string | null>(null);
+
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [pendingEditProfile, setPendingEditProfile] = useState<any | null>(null);
+  const [passwordError, setPasswordError] = useState<string>("");
 
   // Selección con PIN
   const handleSelectProfile = (profile: any) => {
@@ -238,6 +298,27 @@ const ProfileSelector: React.FC<{ onProfileSelected?: () => void }> = ({
     }
   };
 
+  const requestEditWithPassword = (profile: any) => {
+    setPasswordError("");
+    setPendingEditProfile(profile);
+    setShowPasswordPrompt(true);
+  };
+
+  const handlePasswordConfirm = async (password: string) => {
+    try {
+      setPasswordError("");
+      await reauthenticate(password);
+      setShowPasswordPrompt(false);
+      if (pendingEditProfile) {
+        setEditProfile(pendingEditProfile);
+        setShowForm(true);
+        setPendingEditProfile(null);
+      }
+    } catch (e) {
+      setPasswordError("Contraseña incorrecta. Intenta nuevamente.");
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
       <div className="text-center max-w-4xl mx-auto px-4">
@@ -246,7 +327,7 @@ const ProfileSelector: React.FC<{ onProfileSelected?: () => void }> = ({
 
         {/* Perfiles */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-8">
-          {profiles.map((profile) => (
+          {profiles.slice(0, 5).map((profile) => (
             <div
               key={profile.id}
               className="group cursor-pointer transition-transform hover:scale-105"
@@ -261,8 +342,7 @@ const ProfileSelector: React.FC<{ onProfileSelected?: () => void }> = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setEditProfile(profile);
-                      setShowForm(true);
+                      requestEditWithPassword(profile);
                     }}
                     className="w-6 h-6 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center text-white text-xs"
                     title="Editar perfil"
@@ -309,6 +389,19 @@ const ProfileSelector: React.FC<{ onProfileSelected?: () => void }> = ({
         onConfirm={handleConfirmPin}
         profileName={pinProfile?.name}
       />
+
+      <PasswordConfirmModal
+        isOpen={showPasswordPrompt}
+        onClose={() => {
+          setShowPasswordPrompt(false);
+          setPendingEditProfile(null);
+        }}
+        onConfirm={handlePasswordConfirm}
+      />
+
+      {passwordError && (
+        <div className="absolute bottom-20 text-red-500 font-medium">{passwordError}</div>
+      )}
 
       <ProfileFormModal
         isOpen={showForm}

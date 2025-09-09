@@ -40,8 +40,11 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-black flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50"></div>
+    <div
+      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center relative"
+      style={{ backgroundImage: `url(${bgImage})` }}
+    >
+      <div className="absolute inset-0 bg-black/60"></div>
       
       <div className="relative z-10 w-full max-w-md">
         <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-gray-800">

@@ -45,6 +45,11 @@ const MainApp: React.FC = () => {
     if (currentUser) {
       console.log("✅ Usuario logueado:", currentUser.uid);
 
+      if (profiles.length === 0) {
+        console.log("⚡ Creando perfiles por defecto...");
+        forceCreateDefaultProfiles();
+      }
+
       const savedProfileId = localStorage.getItem("selected_profile_id");
       if (savedProfileId) {
         const savedProfile = profiles.find((p) => p.id === savedProfileId);
@@ -61,7 +66,7 @@ const MainApp: React.FC = () => {
         setShowProfileSelector(true);
       }
     }
-  }, [currentUser, profiles, currentProfile, selectProfile]);
+  }, [currentUser, profiles, currentProfile, selectProfile, forceCreateDefaultProfiles]);
 
   if (!currentUser) {
     return <Login />;
